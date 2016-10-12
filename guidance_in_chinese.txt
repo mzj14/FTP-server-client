@@ -1,0 +1,24 @@
+总: server 必须正确处理的命令有USER, PASS, RETR, STOR, QUIT, SYST, TYPE, PORT, PASV
+
+Login 功能:
+
+1. 当client与server建立连接时，server应当发送给client一条基本信息，e.g. 220 Anonymous FTP server ready.\r\n
+
+2. client发送命令"USER anonymous"。除此以外，所有其他的命令都是违法的，非anonymous用户不被支持
+
+3. server发送确认消息，并请用户提供密码
+
+4. 用户发送命令 "PASS some_word"
+
+5. server允许用户登录，发送问候消息
+
+建议: 建立用户表来实现用户验证
+
+
+PORT, PASV：
+
+注: STOR RETR, LIST 功能必须在这两个命令中的任意一个执行后方可执行
+
+1. client发送"PORT" + 监听的IP + PORT
+
+2. server 通过IP和PORT建立与client的另一个连接，
