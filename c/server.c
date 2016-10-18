@@ -14,6 +14,16 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <string.h>
+
+
+#include "preclude/const.h"
+#include "preclude/separator.h"
+#include "preclude/classifier.h"
+
+/*
+#include "preclude/handler.h"
+*/
 
 #define PORT "9000"  // the port users will be connecting to
 
@@ -42,6 +52,17 @@ void *get_in_addr(struct sockaddr *sa)
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+int getCategory(char *buf, char* client_msg[], int client_msg_len){
+  printf("entered the getCategory");
+  int i;
+  for (i = 0; i < client_msg_len; i++){
+    if (strcmp(buf, client_msg[i]) == 0){
+      return i;
+    }
+  }
+  return i;
+}
+
 int main(void)
 {
   int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -52,7 +73,18 @@ int main(void)
   int yes=1;
   char s[INET6_ADDRSTRLEN];
   int rv; 
-  char buf[MAXDATASIZE];
+  char buf[MAXDATASIZE], verb[MAXDATASIZE], parameter[MAXDATASIZE], error_msg[MAXDATASIZE];
+  
+  char* send_msg[3] = {
+    "331 Guest login ok, send your complete e-mail address as password.",
+    "230 Guest login ok, access restriction apply.",
+    "Invalid command!"
+  };
+  
+  char* client_msg[2] = {
+    "USER anonymous",
+    "PASS 1@qq.com"
+  };
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -107,14 +139,11 @@ int main(void)
     exit(1);
   }
 
-  printf("111");
   printf("server: waiting for connections...\n");
 
-  // every time the client run the connect function, the while will loop once
+  // if there is no connection income, the process will stop the while loop
   while(1) {  // main accept() loop
-
     sin_size = sizeof their_addr;
-
     new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
     
     if (new_fd == -1) {
@@ -125,45 +154,55 @@ int main(void)
     inet_ntop(their_addr.ss_family,
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
+      
     printf("server: got connection from %s\n", s);
     
+    // printf("-1");
     
-    if (send(new_fd, "220 Localhost FTP server ready.", 31, 0) == -1) {
+    if (send(new_fd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE), 0) == -1) {
       perror("send");
     }
+    /*    
+    else {
+      printf("Welcome message has been successfully send out");  
+    }
+    */
+    // printf("sizeof buf = %lu", sizeof buf);
     
     while(1) {
-      printf("loop begin again\n");
+      // printf("000");
       memset(buf, 0, sizeof buf);
-      printf("Begin reading from the socket.\n");
+      memset(verb, 0, sizeof verb);
+      memset(parameter, 0, sizeof parameter);
+      memset(error_msg, 0, sizeof error_msg);
+      
       // if there is no message sent from the client, the process will hang on the recv()
-      numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0);
-      printf("Finish reading from the socket.\n");
-      buf[numbytes] = '\0';
+      numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0);
+      // printf("numbytes = %d\n", numbytes);
+      // printf("111");
+      // buf[numbytes] = '\0';
       if (numbytes == -1) {
         perror("recv error");
         exit(1);
       }
-      printf("The recieve message is %s\n", buf);
       
-      if (numbytes > 0) {
-        if (buf[0] == 'U'){
-          if (send(new_fd, "331 Guests Login Ok", 19, 0) == -1) {
-            perror("send");
-          } else {
-            printf("Successfully send the Guest Login message.\n");
-          }
-        }
-        if (buf[0] == 'P'){
-          if (send(new_fd, "Password validated", 18, 0) == -1) {
-            perror("send");
-          } else {
-            printf("Successfully send the password validated message.\n");
-          }
-        }
+      
+      printf("Receive message:%s\n", buf);
+      
+      separateRequest(buf, verb, parameter);
+      
+      printf("Verb:%s\n", verb);
+      printf("Parameter:%s\n", parameter);
+      
+	  int cat = getRequestCategory(verb, parameter, error_msg);
+      
+      printf("cat = %d\n", cat);
+      printf("error_msg = %s\n", error_msg);
+      
+      if (send(new_fd, "Got the reply?\r\n", 16, 0) == -1) {
+        perror("send");
       }
     }
   }
-  
   return 0;
 }

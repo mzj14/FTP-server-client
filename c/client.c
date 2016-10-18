@@ -11,8 +11,10 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
+#include <string.h>
 #include <arpa/inet.h>
+
+#include "preclude/modify.h"
 
 #define PORT "9000" // the port client will be connecting to 
 
@@ -35,18 +37,20 @@ int main(int argc, char *argv[])
   struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
-  char *msg;
+  char send_msg[MAXDATASIZE];
 
+  /*
   if (argc != 2) {
       fprintf(stderr,"usage: client hostname\n");
       exit(1);
   }
+  */
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return 1;
   }
@@ -64,11 +68,10 @@ int main(int argc, char *argv[])
       close(sockfd);
       continue;
     }
-
     break;
   }
 
-  if (p == NULL) {
+   if (p == NULL) {
     fprintf(stderr, "client: failed to connect\n");
     return 2;
   }
@@ -78,42 +81,41 @@ int main(int argc, char *argv[])
   printf("client: connecting to %s\n", s);
 
   freeaddrinfo(servinfo); // all done with this structure
-
+  
   while (1) {
-    printf("loop begin again\n");
+    // printf("loop begin again\n");
     memset(buf, 0, sizeof buf);
-    printf("Begin reading from the socket.\n");
+    // printf("Begin from the socket.\n");
     // if there is no message sent from the client, the process will hang on the recv()
-    numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0);
-    printf("Finish reading from the socket.\n");
+    numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0);
+    // printf("Finish reading from the socket.\n");
     if (numbytes == -1) {
       perror("recv error");
       exit(1);
     }
-    buf[numbytes] = '\0';
-    printf("The recieve message is %s\n", buf);
+    // buf[numbytes] = '\0';
+    // printf("%s\n", buf);
+    printf("Receive message:%s\n", buf);
     
-    if (numbytes > 0) {
-      if (buf[0] == '2') {
-        if (send(sockfd, "USER", 4, 0) == -1) {
-          perror("send");
-        } else {
-          printf("Successfully send the USER message.\n");
-        }
-      }
-
-      if (buf[0] == '3') {
-        if (send(sockfd, "Password", 4, 0) == -1) {
-          perror("send");
-        } else {
-          printf("Successfully send the password message.\n");
-        }
-      }
+    // client now get msg from command line
+    fgets(send_msg, MAXDATASIZE - 2, stdin);
+    
+    modifyTail(send_msg);
+    
+    // printf("The command is %s.", send_msg);
+    
+    // printf("len is %lu", strlen(send_msg));
+    
+    if (send(sockfd, send_msg, strlen(send_msg), 0) == -1) {
+      perror("send");
     }
-    
-    getchar();
+    /*    
+    else {
+      printf("Successfully the message.\n");
+    }
+    */
   }
-
+  
   close(sockfd);
 
   return 0;
