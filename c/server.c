@@ -21,6 +21,7 @@
 #include "preclude/separator.h"
 #include "preclude/classifier.h"
 #include "preclude/handler.h"
+#include "preclude/sender.h"
 
 #define PORT "9000"  // the port users will be connecting to
 
@@ -183,7 +184,7 @@ int main(void)
 	  printf("client.status = %d", client_node.status);
 	  printf("client.password = %s", client_node.password);
       
-      if (send(new_fd, send_msg, strlen(send_msg), 0) == -1) {
+      if (sendAll(new_fd, send_msg, strlen(send_msg)) == -1) {
         perror("send");
       }
     }
