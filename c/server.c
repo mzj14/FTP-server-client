@@ -22,6 +22,8 @@
 #include "preclude/classifier.h"
 #include "preclude/handler.h"
 #include "preclude/sender.h"
+#include "preclude/receiver.h"
+#include "preclude/client_data.h"
 
 #define PORT "9000"  // the port users will be connecting to
 
@@ -138,15 +140,9 @@ int main(void)
     client_node.status = UN_LOG;
     // printf("-1");
     
-    if (send(new_fd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE), 0) == -1) {
+    if (sendAll(new_fd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE)) == -1) {
       perror("send");
     }
-    /*    
-    else {
-      printf("Welcome message has been successfully send out");  
-    }
-    */
-    // printf("sizeof buf = %lu", sizeof buf);
     
     while(1) {
       // printf("000");
@@ -157,11 +153,7 @@ int main(void)
       memset(send_msg, 0, sizeof send_msg);
       
       // if there is no message sent from the client, the process will hang on the recv()
-      numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0);
-      // printf("numbytes = %d\n", numbytes);
-      // printf("111");
-      // buf[numbytes] = '\0';
-      if (numbytes == -1) {
+      if (recvAll(new_fd, buf, MAXDATASIZE - 1) == -1) {
         perror("recv error");
         exit(1);
       }

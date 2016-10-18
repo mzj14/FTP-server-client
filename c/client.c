@@ -15,6 +15,8 @@
 #include <arpa/inet.h>
 
 #include "preclude/modify.h"
+#include "preclude/sender.h"
+#include "preclude/receiver.h"
 
 #define PORT "9000" // the port client will be connecting to 
 
@@ -39,18 +41,16 @@ int main(int argc, char *argv[])
   char s[INET6_ADDRSTRLEN];
   char send_msg[MAXDATASIZE];
 
-  /*
   if (argc != 2) {
       fprintf(stderr,"usage: client hostname\n");
       exit(1);
   }
-  */
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((rv = getaddrinfo("localhost", PORT, &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return 1;
   }
@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
     memset(buf, 0, sizeof buf);
     // printf("Begin from the socket.\n");
     // if there is no message sent from the client, the process will hang on the recv()
-    numbytes = recv(sockfd, buf, MAXDATASIZE - 1, 0);
+    ;
     // printf("Finish reading from the socket.\n");
-    if (numbytes == -1) {
+    if (recvAll(sockfd, buf, MAXDATASIZE - 1) == -1) {
       perror("recv error");
       exit(1);
     }
@@ -106,14 +106,9 @@ int main(int argc, char *argv[])
     
     // printf("len is %lu", strlen(send_msg));
     
-    if (send(sockfd, send_msg, strlen(send_msg), 0) == -1) {
-      perror("send");
-    }
-    /*    
-    else {
-      printf("Successfully the message.\n");
-    }
-    */
+	if (sendAll(sockfd, send_msg, strlen(send_msg)) == -1) {
+	  perror("send");
+	}
   }
   
   close(sockfd);

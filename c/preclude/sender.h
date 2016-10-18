@@ -1,6 +1,7 @@
 #ifndef SENDER_H
 #define SENDER_H
 
+#define END_STRING "$"
 /* 
    send all the character in buf
 */           
