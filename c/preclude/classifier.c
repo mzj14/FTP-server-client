@@ -28,12 +28,12 @@ int getCommandType(char* verb) {
 	}
 	return 0;
 }
-/*
+
 int checkParamWithRegex(char* parameter, char* pattern) {
     int status;
     regex_t reg;
     
-    regcomp(&reg, pattern, 0);
+    regcomp(&reg, pattern, REG_EXTENDED);
     status = regexec(&reg, parameter, 0, NULL, 0);
     regfree(&reg);
     
@@ -47,7 +47,11 @@ int checkParamWithRegex(char* parameter, char* pattern) {
 int properParam(char* parameter, int type, char* error_msg) {
     // the USER command
     if (type == 1) {
-        if (checkParamWithRegex(parameter, "\\w+") == 0) {
+        if (checkParamWithRegex(parameter, "^$") == 1) {
+            stpcpy(error_msg, "500 User name is needed\r\n");
+            return 0;
+        }
+        if (checkParamWithRegex(parameter, "^\\w+$") == 0) {
             stpcpy(error_msg, "503 User name should only contains: _ a-z A-Z 0-9\r\n");
             return 0;
         }
@@ -56,33 +60,41 @@ int properParam(char* parameter, int type, char* error_msg) {
             return 0;
         };
     }
-
+    
     // the PASS command
     if (type == 2) {
-        if (checkParamWithRegex(parameter, "\w+@(\.[a_zA_Z]+)+") == 0) {
+        if (checkParamWithRegex(parameter, "^$") == 1) {
+            stpcpy(error_msg, "500 Password is needed\r\n");
+            return 0;
+        }
+        if (checkParamWithRegex(parameter, "^\\w+@\\w+(\\.\\w+)+$") == 0) {
             stpcpy(error_msg, "503 Email format is wrong\r\n");
             return 0;
         }
     }
-
+    
     // the SYST, TYPE, QUIT command
     if (type == 3 || type == 5) {
         if (checkParamWithRegex(parameter, "^$") == 0) {
-            stpcpy(error_msg, "503 The command should not have parameter\r\n");
+            stpcpy(error_msg, "500 The command should not have parameter\r\n");
             return 0;
         }
     }
     
     if (type == 4) {
+        if (checkParamWithRegex(parameter, "^$") == 1) {
+            stpcpy(error_msg, "500 Type parameter is needed\r\n");
+            return 0;
+        }
         if (checkParamWithRegex(parameter, "^I$") == 0) {
             stpcpy(error_msg, "504 FTP does not support type other I\r\n");
             return 0;
         }
     }
-
+    
     return 1;
 }
-*/
+
 
 int getRequestCategory(char* verb, char* parameter, char* error_msg) {
     // only space in command
@@ -113,11 +125,11 @@ int getRequestCategory(char* verb, char* parameter, char* error_msg) {
 	
     
 	// improper parameter
-    /*
+    
 	if (properParam(parameter, commandType, error_msg) == 0) {
         return 0;
 	}
-    */
+    
 	
 	return commandType;
 }
