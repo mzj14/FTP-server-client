@@ -20,10 +20,7 @@
 #include "preclude/const.h"
 #include "preclude/separator.h"
 #include "preclude/classifier.h"
-
-/*
 #include "preclude/handler.h"
-*/
 
 #define PORT "9000"  // the port users will be connecting to
 
@@ -73,18 +70,7 @@ int main(void)
   int yes=1;
   char s[INET6_ADDRSTRLEN];
   int rv; 
-  char buf[MAXDATASIZE], verb[MAXDATASIZE], parameter[MAXDATASIZE], error_msg[MAXDATASIZE];
-  
-  char* send_msg[3] = {
-    "331 Guest login ok, send your complete e-mail address as password.",
-    "230 Guest login ok, access restriction apply.",
-    "Invalid command!"
-  };
-  
-  char* client_msg[2] = {
-    "USER anonymous",
-    "PASS 1@qq.com"
-  };
+  char buf[MAXDATASIZE], verb[MAXDATASIZE], parameter[MAXDATASIZE], error_msg[MAXDATASIZE], send_msg[MAXDATASIZE];
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -175,6 +161,7 @@ int main(void)
       memset(verb, 0, sizeof verb);
       memset(parameter, 0, sizeof parameter);
       memset(error_msg, 0, sizeof error_msg);
+      memset(error_msg, 0, sizeof send_msg);
       
       // if there is no message sent from the client, the process will hang on the recv()
       numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0);
@@ -196,10 +183,12 @@ int main(void)
       
 	  int cat = getRequestCategory(verb, parameter, error_msg);
       
-      printf("cat = %d\n", cat);
-      printf("error_msg = %s\n", error_msg);
+      handleRequest(cat, parameter, error_msg, send_msg);
       
-      if (send(new_fd, "Got the reply?\r\n", 16, 0) == -1) {
+      printf("cat = %d\n", cat);
+      printf("error_msg = %s\n", send_msg);
+      
+      if (send(new_fd, send_msg, strlen(send_msg), 0) == -1) {
         perror("send");
       }
     }
