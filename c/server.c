@@ -49,17 +49,6 @@ void *get_in_addr(struct sockaddr *sa)
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int getCategory(char *buf, char* client_msg[], int client_msg_len){
-  printf("entered the getCategory");
-  int i;
-  for (i = 0; i < client_msg_len; i++){
-    if (strcmp(buf, client_msg[i]) == 0){
-      return i;
-    }
-  }
-  return i;
-}
-
 int main(void)
 {
   int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -71,6 +60,8 @@ int main(void)
   char s[INET6_ADDRSTRLEN];
   int rv; 
   char buf[MAXDATASIZE], verb[MAXDATASIZE], parameter[MAXDATASIZE], error_msg[MAXDATASIZE], send_msg[MAXDATASIZE];
+  client_data client_node;
+  initClientData(&client_node);
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -143,6 +134,7 @@ int main(void)
       
     printf("server: got connection from %s\n", s);
     
+    client_node.status = UN_LOG;
     // printf("-1");
     
     if (send(new_fd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE), 0) == -1) {
@@ -161,7 +153,7 @@ int main(void)
       memset(verb, 0, sizeof verb);
       memset(parameter, 0, sizeof parameter);
       memset(error_msg, 0, sizeof error_msg);
-      memset(error_msg, 0, sizeof send_msg);
+      memset(send_msg, 0, sizeof send_msg);
       
       // if there is no message sent from the client, the process will hang on the recv()
       numbytes = recv(new_fd, buf, MAXDATASIZE - 1, 0);
@@ -183,10 +175,13 @@ int main(void)
       
 	  int cat = getRequestCategory(verb, parameter, error_msg);
       
-      handleRequest(cat, parameter, error_msg, send_msg);
+      handleRequest(cat, parameter, error_msg, send_msg, &client_node);
       
       printf("cat = %d\n", cat);
-      printf("error_msg = %s\n", send_msg);
+      printf("send_msg = %s\n", send_msg);
+	  
+	  printf("client.status = %d", client_node.status);
+	  printf("client.password = %s", client_node.password);
       
       if (send(new_fd, send_msg, strlen(send_msg), 0) == -1) {
         perror("send");
