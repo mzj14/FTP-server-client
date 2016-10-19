@@ -31,27 +31,6 @@
 
 #define MAXDATASIZE 100
 
-void sigchld_handler(int s)
-{
-  // waitpid() might overwrite errno, so we save and restore it:
-  int saved_errno = errno;
-
-  while(waitpid(-1, NULL, WNOHANG) > 0);
-
-  errno = saved_errno;
-}
-
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-  if (sa->sa_family == AF_INET) {
-    return &(((struct sockaddr_in*)sa)->sin_addr);
-  }
-
-  return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
 int main(void)
 {
   int sockfd, new_fd, numbytes;  // listen on sock_fd, new connection on new_fd
@@ -67,7 +46,7 @@ int main(void)
   initClientData(&client_node);
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
+  hints.ai_family = AF_INET; // restrict socket to IPV4 only
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE; // use my IP
 
@@ -99,23 +78,18 @@ int main(void)
     break;
   }
 
-  freeaddrinfo(servinfo); // all done with this structure
-
   if (p == NULL)  {
     fprintf(stderr, "server: failed to bind\n");
     exit(1);
+  } else {
+	printf("The server socket IP is %s\n", inet_ntoa(((struct sockaddr_in*)p->ai_addr)->sin_addr));
+    printf("The server socket port is %d\n", ntohs(((struct sockaddr_in*)p->ai_addr)->sin_port)); 	
   }
-
+  
+  freeaddrinfo(servinfo); // all done with this structure
+  
   if (listen(sockfd, BACKLOG) == -1) {
     perror("listen");
-    exit(1);
-  }
-
-  sa.sa_handler = sigchld_handler; // reap all dead processes
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESTART;
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-    perror("sigaction");
     exit(1);
   }
 
@@ -130,15 +104,11 @@ int main(void)
       perror("accept");
       continue;
     }
-    
-    inet_ntop(their_addr.ss_family,
-      get_in_addr((struct sockaddr *)&their_addr),
-      s, sizeof s);
-      
-    printf("server: got connection from %s\n", s);
-    
+	
+	printf("The client socket IP is %s\n", inet_ntoa(((struct sockaddr_in*)&their_addr)->sin_addr));
+    printf("The client socket port is %d\n", ntohs(((struct sockaddr_in*)&their_addr)->sin_port));
+	
     client_node.status = UN_LOG;
-    // printf("-1");
     
     if (sendAll(new_fd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE)) == -1) {
       perror("send");
@@ -158,8 +128,7 @@ int main(void)
         exit(1);
       }
       
-      
-      printf("Receive message:%s\n", buf);
+      printf("%s", buf);
       
       separateRequest(buf, verb, parameter);
       

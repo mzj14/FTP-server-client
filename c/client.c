@@ -18,19 +18,11 @@
 #include "preclude/sender.h"
 #include "preclude/receiver.h"
 
+#define IP_ADDRESS "10.0.2.15" // the ip address client will be connecting to
+
 #define PORT "9000" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
-  if (sa->sa_family == AF_INET) {
-    return &(((struct sockaddr_in*)sa)->sin_addr);
-  }
-
-  return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
 
 int main(int argc, char *argv[])
 {
@@ -40,17 +32,17 @@ int main(int argc, char *argv[])
   int rv;
   char s[INET6_ADDRSTRLEN];
   char send_msg[MAXDATASIZE];
-
+  /*
   if (argc != 2) {
       fprintf(stderr,"usage: client hostname\n");
       exit(1);
   }
-
+  */
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
+  hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo(IP_ADDRESS, PORT, &hints, &servinfo)) != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     return 1;
   }
@@ -71,14 +63,13 @@ int main(int argc, char *argv[])
     break;
   }
 
-   if (p == NULL) {
+  if (p == NULL) {
     fprintf(stderr, "client: failed to connect\n");
     return 2;
+  } else {
+	printf("The server socket IP is %s\n", inet_ntoa(((struct sockaddr_in*)p->ai_addr)->sin_addr));
+    printf("The server socket port is %d\n", ntohs(((struct sockaddr_in*)p->ai_addr)->sin_port));  
   }
-
-  inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-      s, sizeof s);
-  printf("client: connecting to %s\n", s);
 
   freeaddrinfo(servinfo); // all done with this structure
   
@@ -87,15 +78,13 @@ int main(int argc, char *argv[])
     memset(buf, 0, sizeof buf);
     // printf("Begin from the socket.\n");
     // if there is no message sent from the client, the process will hang on the recv()
-    ;
+
     // printf("Finish reading from the socket.\n");
     if (recvAll(sockfd, buf, MAXDATASIZE - 1) == -1) {
       perror("recv error");
       exit(1);
     }
-    // buf[numbytes] = '\0';
-    // printf("%s\n", buf);
-    printf("Receive message:%s\n", buf);
+    printf("%s", buf);
     
     // client now get msg from command line
     fgets(send_msg, MAXDATASIZE - 2, stdin);
