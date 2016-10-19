@@ -33,5 +33,6 @@
 *.su
 
 # File folders
-bin/
+server/
+client/
 test/
