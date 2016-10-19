@@ -13,7 +13,7 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
     if (type == USER_COMMAND) {
         if (client->status == UN_LOG) {
             strcpy(send_msg, UN_LOG_USER_MSG);
-            client->status = USER_STATUS;
+            setClientStatus(client, USER_STATUS);
         } else if (client->status == USER_STATUS) {
             strcpy(send_msg, USER_USER_MSG);
         } else {
@@ -24,17 +24,26 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
     // PASS command
     if (type == PASS_COMMAND) {
         if (client->status == UN_LOG) {
+			printf("111\n");
             strcpy(send_msg, UN_LOG_PASS_MSG);
         } else if (client->status == USER_STATUS) {
-            if (client->password[0] == '\0' || strcmp(client->password, parameter) == 0) {
-                strcpy(send_msg, USER_PASS_MSG_1);
-                strcpy(client->password, parameter);
-				client->status = LOG_IN;
-            } else {
-                strcpy(send_msg, USER_PASS_MSG_2);
-            }
+			printf("previous password is %s\n", client->password);
+            if (strcmp(client->password, BLANK_PASSWORD) == 0) {
+				// new member
+				strcpy(send_msg, USER_PASS_MSG_1);
+				setClientStatus(client, LOG_IN);
+				setClientPassword(client, parameter);
+				appendClientNode(client);
+			} else if (strcmp(client->password, parameter) == 0) {
+				// old member
+				strcpy(send_msg, USER_PASS_MSG_1);
+				setClientStatus(client, LOG_IN);
+			} else {
+				// invalid member
+				strcpy(send_msg, USER_PASS_MSG_2);
+			}
         } else {
-            strcpy(client->password, parameter);
+            setClientPassword(client, parameter);
             sprintf(send_msg, LOG_IN_PASS_MSG, parameter);
         }
     }
@@ -69,7 +78,7 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
             strcpy(send_msg, USER_COMMON_MSG);
         } else {
             strcpy(send_msg, LOG_IN_QUIT_MSG);
-            client->status = UN_LOG;
+			setClientStatus(client, OFFLINE);
         }
     }
     return;
