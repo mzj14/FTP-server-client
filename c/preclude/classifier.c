@@ -6,7 +6,7 @@
 #include "const.h"
 #include "classifier.h"
 
-const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB };
+const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB };
 
 int ifAllUpperCase(char* str) {
 	int i = 0;
@@ -73,8 +73,8 @@ int properParam(char* parameter, int type, char* error_msg) {
         }
     }
     
-    // the SYST, TYPE, QUIT command
-    if (type == 3 || type == 5) {
+    // the SYST, QUIT, ABOR command
+    if (type == 3 || type == 5 || type == 6) {
         if (checkParamWithRegex(parameter, "^$") == 0) {
             stpcpy(error_msg, "500 The command should not have parameter\r\n");
             return 0;

@@ -70,8 +70,8 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
         }
     }
     
-    // QUIT command
-    if (type == QUIT_COMMAND) {
+    // QUIT or ABOR command
+    if (type == QUIT_COMMAND || type == ABOR_COMMAND) {
         if (client->status == UN_LOG) {
             strcpy(send_msg, UN_LOG_COMMON_MSG);
         } else if (client->status == USER_STATUS) {

@@ -1,7 +1,7 @@
 #ifndef CONST_H
 #define CONST_H
 
-#define COMMAND_NUM 5
+#define COMMAND_NUM 6
 #define KEY_WORD_SIZE 4
 
 #define WELCOME_MESSAGE "220 Anonymous FTP server ready.\r\n"
@@ -18,12 +18,14 @@
 #define SYST_COMMAND 3
 #define TYPE_COMMAND 4
 #define QUIT_COMMAND 5
+#define ABOR_COMMAND 6
 
 #define USER_VERB "USER"
 #define PASS_VERB "PASS"
 #define SYST_VERB "SYST"
 #define TYPE_VERB "TYPE"
 #define QUIT_VERB "QUIT"
+#define ABOR_VERB "ABOR"
 
 #define UN_LOG_USER_MSG "331 Guest login ok, send your complete e-mail address as a password.\r\n"
 #define UN_LOG_PASS_MSG "530 Please provide a user name before you set a password.\r\n"
