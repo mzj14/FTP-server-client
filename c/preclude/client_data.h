@@ -3,14 +3,19 @@
 
 #define MEMBER_SIZE 30
 #define BLANK_PASSWORD "$"
-#define FAKE_IP "$"
-#define FAKE_SOCKET -1
 
-typedef struct client_data{
+#define COMMAND 0
+#define DATA 1
+#define CONNECTION_TYPE_NUM 2
+
+#define INVALID_PORT -1
+#define INVALID_SOCKFD -1
+
+typedef struct client_data {
 	char ip[MEMBER_SIZE];
-	int port;
+	int port[CONNECTION_TYPE_NUM]; // client port for command connection and data connection
     char password[MEMBER_SIZE];
-	int sockfd;
+	int sockfd[CONNECTION_TYPE_NUM]; // server socket for two kind connection
 	int status;
 	struct client_data* next;
 } client_data;

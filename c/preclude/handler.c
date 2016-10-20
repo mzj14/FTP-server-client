@@ -24,10 +24,8 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
     // PASS command
     if (type == PASS_COMMAND) {
         if (client->status == UN_LOG) {
-			printf("111\n");
             strcpy(send_msg, UN_LOG_PASS_MSG);
         } else if (client->status == USER_STATUS) {
-			printf("previous password is %s\n", client->password);
             if (strcmp(client->password, BLANK_PASSWORD) == 0) {
 				// new member
 				strcpy(send_msg, USER_PASS_MSG_1);

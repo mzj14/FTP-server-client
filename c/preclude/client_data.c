@@ -9,8 +9,10 @@ client_data* createClientWithData(client_data* head, char* ip, int port, int soc
 	
     strcpy(client->ip, ip);
 	strcpy(client->password, BLANK_PASSWORD);
-	client->port = port;
-	client->sockfd = sockfd;
+	client->port[COMMAND] = port;
+	client->port[DATA] = INVALID_PORT;
+	client->sockfd[COMMAND] = sockfd;
+	client->sockfd[DATA] = INVALID_SOCKFD;
     client->status = UN_LOG;
 	client->next = head;
     return client;
@@ -48,7 +50,7 @@ void deleteAllClient(client_data* head) {
 client_data* searchClientWithIP(client_data* head, char* ip, int port) {
 	client_data* node = head;
 	while (node) {
-		if (strcmp(node->ip, ip) == 0 && node->port == port) {
+		if (strcmp(node->ip, ip) == 0 && node->port[COMMAND] == port) {
 			return node;
 		}
 		node = node->next;

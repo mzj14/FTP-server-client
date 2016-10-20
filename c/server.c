@@ -154,7 +154,7 @@ void* handleConnection(void* clientPtr) {
 		receive_result;           // result of receiving data from stream
 		
 	// send welcome message
-	if (sendAll(client->sockfd, WELCOME_MESSAGE, strlen(WELCOME_MESSAGE)) == -1) {
+	if (sendAll(client->sockfd[COMMAND], WELCOME_MESSAGE, strlen(WELCOME_MESSAGE)) == -1) {
 		perror("send");
 	}
 	
@@ -167,7 +167,7 @@ void* handleConnection(void* clientPtr) {
 		memset(send_msg, 0, sizeof send_msg);
   
 		// if there is no message sent from the client, the process will hang on the recv()
-		receive_result = recvAll(client->sockfd, buf, MAXDATASIZE - 1);
+		receive_result = recvAll(client->sockfd[COMMAND], buf, MAXDATASIZE - 1);
 		if (receive_result == -1) {
 			perror("recv error");
 			exit(1);
@@ -188,18 +188,18 @@ void* handleConnection(void* clientPtr) {
 		printf("send_msg = %s\n", send_msg);
   
         printf("client.ip = %s\n", client->ip);
-		printf("client.port = %d\n", client->port);
-		printf("client.socket = %d\n", client->sockfd);
+		printf("client.port = %d\n", client->port[COMMAND]);
+		printf("client.socket = %d\n", client->sockfd[COMMAND]);
 		printf("client.status = %d\n", client->status);
 		printf("client.password = %s\n", client->password);
   
-		if (sendAll(client->sockfd, send_msg, strlen(send_msg)) == -1) {
+		if (sendAll(client->sockfd[COMMAND], send_msg, strlen(send_msg)) == -1) {
 			perror("send");
 		}
 		
 		if (client->status == OFFLINE) {
-			close(client->sockfd);
-			printf("Socket No.%d is closed by client at %s:%d\n", client->sockfd, client->ip, client->port);
+			close(client->sockfd[COMMAND]);
+			printf("Socket No.%d is closed by client at %s:%d\n", client->sockfd[COMMAND], client->ip, client->port[COMMAND]);
 			/*
 			if (strcmp(client->password, BLANK_PASSWORD) == 0) {
 				free(client);
