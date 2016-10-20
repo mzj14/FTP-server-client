@@ -1,7 +1,7 @@
 #ifndef CONST_H
 #define CONST_H
 
-#define COMMAND_NUM 6
+#define COMMAND_NUM 7
 #define KEY_WORD_SIZE 4
 
 #define WELCOME_MESSAGE "220 Anonymous FTP server ready.\r\n"
@@ -19,6 +19,8 @@
 #define TYPE_COMMAND 4
 #define QUIT_COMMAND 5
 #define ABOR_COMMAND 6
+#define PORT_COMMAND 7
+#define RETR_COMMAND 8
 
 #define USER_VERB "USER"
 #define PASS_VERB "PASS"
@@ -26,6 +28,8 @@
 #define TYPE_VERB "TYPE"
 #define QUIT_VERB "QUIT"
 #define ABOR_VERB "ABOR"
+#define PORT_VERB "PORT"
+#define RETR_VERB "RETR"
 
 #define UN_LOG_USER_MSG "331 Guest login ok, send your complete e-mail address as a password.\r\n"
 #define UN_LOG_PASS_MSG "530 Please provide a user name before you set a password.\r\n"
@@ -42,5 +46,5 @@ plicit, about the contents of this site.\r\n230-Use at your own risk.\r\n230 Gue
 #define LOG_IN_SYST_MSG "215 UNIX Type: L8\r\n"
 #define LOG_IN_TYPE_MSG "200 Type set to I.\r\n"
 #define LOG_IN_QUIT_MSG "221-Thank you for using the FTP service.\r\n221 Goodbye.\r\n"
-
+#define LOG_IN_PORT_MSG "200 FTP receive new data IP and port of client.\r\n"
 #endif

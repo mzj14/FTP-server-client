@@ -8,11 +8,12 @@
 #define DATA 1
 #define CONNECTION_TYPE_NUM 2
 
+#define INVALID_IP "$"
 #define INVALID_PORT -1
 #define INVALID_SOCKFD -1
 
 typedef struct client_data {
-	char ip[MEMBER_SIZE];
+	char ip[CONNECTION_TYPE_NUM][MEMBER_SIZE];
 	int port[CONNECTION_TYPE_NUM]; // client port for command connection and data connection
     char password[MEMBER_SIZE];
 	int sockfd[CONNECTION_TYPE_NUM]; // server socket for two kind connection

@@ -187,9 +187,12 @@ void* handleConnection(void* clientPtr) {
 		printf("cat = %d\n", cat);
 		printf("send_msg = %s\n", send_msg);
   
-        printf("client.ip = %s\n", client->ip);
-		printf("client.port = %d\n", client->port[COMMAND]);
-		printf("client.socket = %d\n", client->sockfd[COMMAND]);
+	    printf("client.ip[COMMAND] = %s\n", client->ip[COMMAND]);
+		printf("client.ip[DATA] = %s\n", client->ip[DATA]);
+		printf("client.port[COMMAND] = %d\n", client->port[COMMAND]);
+		printf("client.port[DATA] = %d\n", client->port[DATA]);
+		printf("client.socket[COMMAND] = %d\n", client->sockfd[COMMAND]);
+		printf("client.socket[DATA] = %d\n", client->sockfd[DATA]);
 		printf("client.status = %d\n", client->status);
 		printf("client.password = %s\n", client->password);
   
@@ -199,12 +202,10 @@ void* handleConnection(void* clientPtr) {
 		
 		if (client->status == OFFLINE) {
 			close(client->sockfd[COMMAND]);
-			printf("Socket No.%d is closed by client at %s:%d\n", client->sockfd[COMMAND], client->ip, client->port[COMMAND]);
-			/*
+			printf("Socket No.%d is closed by client at %s:%d\n", client->sockfd[COMMAND], client->ip[COMMAND], client->port[COMMAND]);
 			if (strcmp(client->password, BLANK_PASSWORD) == 0) {
 				free(client);
 			}
-			*/
 			printf("mark1");
 			break;
 		}

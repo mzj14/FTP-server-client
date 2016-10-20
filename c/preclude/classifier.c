@@ -6,7 +6,7 @@
 #include "const.h"
 #include "classifier.h"
 
-const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB };
+const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB, PORT_VERB };
 
 int ifAllUpperCase(char* str) {
 	int i = 0;
@@ -81,6 +81,7 @@ int properParam(char* parameter, int type, char* error_msg) {
         }
     }
     
+	// the TYPE command
     if (type == 4) {
         if (checkParamWithRegex(parameter, "^$") == 1) {
             stpcpy(error_msg, "500 Type parameter is needed\r\n");
@@ -91,7 +92,18 @@ int properParam(char* parameter, int type, char* error_msg) {
             return 0;
         }
     }
-    
+	
+	// the PORT command
+    if (type == 7) {
+		if (checkParamWithRegex(parameter, "^$") == 1) {
+            stpcpy(error_msg, "500 Port parameter is needed\r\n");
+            return 0;
+        }
+		if (checkParamWithRegex(parameter, PORT_REGEX) == 0) {
+			stpcpy(error_msg, "500 Port format is wrong\r\n");
+            return 0;
+		}
+	}    
     return 1;
 }
 
@@ -117,19 +129,17 @@ int getRequestCategory(char* verb, char* parameter, char* error_msg) {
     }
     
     int commandType = getCommandType(verb);
+	
     // illegal command
     if (commandType == 0) {
         // not support the verb
         strcpy(error_msg, "503 FTP does not support the verb\r\n");
     }
-	
     
 	// improper parameter
-    
 	if (properParam(parameter, commandType, error_msg) == 0) {
         return 0;
 	}
     
-	
 	return commandType;
 }

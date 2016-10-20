@@ -7,7 +7,8 @@
 client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd) {
 	client_data* client =(client_data*)malloc(sizeof(client_data));
 	
-    strcpy(client->ip, ip);
+    strcpy(client->ip[COMMAND], ip);
+	strcpy(client->ip[DATA], INVALID_IP);
 	strcpy(client->password, BLANK_PASSWORD);
 	client->port[COMMAND] = port;
 	client->port[DATA] = INVALID_PORT;
@@ -50,7 +51,7 @@ void deleteAllClient(client_data* head) {
 client_data* searchClientWithIP(client_data* head, char* ip, int port) {
 	client_data* node = head;
 	while (node) {
-		if (strcmp(node->ip, ip) == 0 && node->port[COMMAND] == port) {
+	if (strcmp(node->ip[COMMAND], ip) == 0 && node->port[COMMAND] == port) {
 			return node;
 		}
 		node = node->next;
