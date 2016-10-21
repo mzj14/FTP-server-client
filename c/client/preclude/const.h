@@ -1,7 +1,9 @@
 #ifndef CONST_H
 #define CONST_H
 
-#define COMMAND_NUM 7
+#define MAXDATASIZE 100
+
+#define COMMAND_NUM 8
 #define KEY_WORD_SIZE 4
 
 #define WELCOME_MESSAGE "220 Anonymous FTP server ready.\r\n"
@@ -46,5 +48,13 @@ plicit, about the contents of this site.\r\n230-Use at your own risk.\r\n230 Gue
 #define LOG_IN_SYST_MSG "215 UNIX Type: L8\r\n"
 #define LOG_IN_TYPE_MSG "200 Type set to I.\r\n"
 #define LOG_IN_QUIT_MSG "221-Thank you for using the FTP service.\r\n221 Goodbye.\r\n"
-#define LOG_IN_PORT_MSG "200 FTP receive new data IP and port of client.\r\n"
+#define LOG_IN_PORT_MSG "200 PORT command successful.\r\n"
+
+#define LOG_IN_RETR_MSG_1 "425 No TCP connection shown by PORT or PASV.\r\n"
+#define LOG_IN_RETR_MSG_2 "550 File not exist.\r\n"
+#define LOG_IN_RETR_MSG_3 "550 No right to read the file.\r\n"
+#define LOG_IN_RETR_MSG_4 "425 Can not establish tcp connection.\r\n"
+#define LOG_IN_RETR_MSG_5 "426 The established tcp connection is broken.\r\n"
+#define LOG_IN_RETR_MSG_6 "226 Transfer complete (%ld bytes)."
+
 #endif

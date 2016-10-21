@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "handler.h"
 #include "const.h"
+#include "connector.h"
+#include "sender.h"
 
 void splitPortParam(char* parameter, char* ip, int* port) {
-	printf("111");
+	// printf("111");
 	char *ptr = parameter, *ptr_r = ptr;
 	char first_num[10], second_num[10];
 	
@@ -17,7 +20,8 @@ void splitPortParam(char* parameter, char* ip, int* port) {
 	
 	// get the ip
 	strcpy(ip, parameter);
-	printf("ip = %s", ip);
+	// printf("ip = %s", ip);
+	
 	// get the port number
 	ptr++;
 	ptr_r = strchr(ptr, ',');
@@ -25,16 +29,16 @@ void splitPortParam(char* parameter, char* ip, int* port) {
 	ptr_r++;
 	
 	strcpy(first_num, ptr);
-    printf("first_num = %s\n", first_num);
+    // printf("first_num = %s\n", first_num);
 	
 	strcpy(second_num, ptr_r);
-	printf("second_num = %s\n", second_num);
+	// printf("second_num = %s\n", second_num);
 	
 	*port = atoi(first_num) * 256 + atoi(second_num);
-	printf("port = %d", *port);
-	
+	// printf("port = %d", *port);
 	return;
 }
+
 
 void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, client_data* client) {
     // error command
@@ -125,5 +129,53 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 		}	
 	}
 
+	// RETR command
+	if (type == RETR_COMMAND) {
+		if (client->status == UN_LOG) {
+            strcpy(send_msg, UN_LOG_COMMON_MSG);
+        } else if (client->status == USER_STATUS) {
+            strcpy(send_msg, USER_COMMON_MSG);
+        } else {
+			if (client->port[DATA] == INVALID_PORT) {
+				// server does not receive data port from client
+				strcpy(send_msg, LOG_IN_RETR_MSG_1);
+			} else {
+				// search the file
+				if ((access(parameter, 0)) == -1) {
+					// can not find the file
+					strcpy(send_msg, LOG_IN_RETR_MSG_2);
+				} else {
+					if ((access(parameter, 4)) == -1) {
+						// can not read the file
+						strcpy(send_msg, LOG_IN_RETR_MSG_3);
+					} else {
+						int data_sockfd = INVALID_SOCKFD;
+						do {
+							data_sockfd = connectSocketToDest(client->ip[DATA], client->port[DATA]);
+						} while(data_sockfd == INVALID_SOCKFD);
+						
+						// can not establish tcp connection
+						if (data_sockfd == INVALID_SOCKFD) {
+							strcpy(send_msg, LOG_IN_RETR_MSG_4);
+						} else {
+							long int file_len = sendFile(data_sockfd, parameter);
+							if (file_len == -1) {
+		                        // send file failed
+								strcpy(send_msg, LOG_IN_RETR_MSG_5);
+							} else {
+								// send file succeed
+								sprintf(send_msg, LOG_IN_RETR_MSG_6, file_len); 
+							}	 
+							close(data_sockfd);    
+						}
+					}	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
+			}
+		}
+	}
+	
     return;
 }

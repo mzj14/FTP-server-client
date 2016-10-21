@@ -6,7 +6,7 @@
 #include "const.h"
 #include "classifier.h"
 
-const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB, PORT_VERB };
+const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB, PORT_VERB, RETR_VERB };
 
 int ifAllUpperCase(char* str) {
 	int i = 0;
@@ -103,7 +103,16 @@ int properParam(char* parameter, int type, char* error_msg) {
 			stpcpy(error_msg, "500 Port format is wrong\r\n");
             return 0;
 		}
-	}    
+	}
+
+    // the RETR command.
+	if (type == 8) {
+		if (checkParamWithRegex(parameter, "^$") == 1) {
+            stpcpy(error_msg, "500 Retrieve parameter is needed\r\n");
+            return 0;
+        }
+	}
+	
     return 1;
 }
 

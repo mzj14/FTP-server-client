@@ -5,4 +5,6 @@
 
 extern void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, client_data* client);
 
+extern void splitPortParam(char* parameter, char* ip, int* port);
+
 #endif

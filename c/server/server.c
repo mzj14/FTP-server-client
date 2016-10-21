@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 #include <signal.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/socket.h>
 
 #include "preclude/const.h"
 #include "preclude/separator.h"
@@ -24,21 +26,21 @@
 #include "preclude/sender.h"
 #include "preclude/receiver.h"
 #include "preclude/client_data.h"
+#include "preclude/binder.h"
 
-#define PORT "9000"  // the port users will be connecting to
+#define PORT 9000  // the port users will be connecting to
 
 #define BACKLOG 10  // how many pending connections queue will hold
-
-#define MAXDATASIZE 100
 
 void* handleConnection(void* clientPtr);
 
 int main(void)
 {
-	int sockfd;
+	int sockfd = bindSocketWithLocal(NULL, PORT, BACKLOG);
   
     /************************************ Select a proper socket for server to use******************************/
 
+	/*
 	struct addrinfo hints, *servinfo, *p;
 	int rv, yes = 1;
 	
@@ -90,7 +92,7 @@ int main(void)
     }
 
     printf("server: waiting for connections...\n");
-    
+    */
 	
 	
 	

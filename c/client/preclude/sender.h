@@ -7,4 +7,6 @@
 */           
 extern int sendAll(int s, char* buf, int len);
 
+extern long int sendFile(int sockfd, char* file_name);
+
 #endif
