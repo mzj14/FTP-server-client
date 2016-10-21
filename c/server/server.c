@@ -18,6 +18,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 #include "preclude/const.h"
 #include "preclude/separator.h"
@@ -28,15 +29,35 @@
 #include "preclude/client_data.h"
 #include "preclude/binder.h"
 
-#define PORT 9000  // the port users will be connecting to
+#define PORT "-port"  // the port argument in command
+#define ROOT "-root"  // the root argument in command
+
+#define TOTAL_PORT_NUM 65536
+#define DEFAULT_PORT 21
+#define DEFAULT_ROOT "/tmp"
+
+#define FULL_ACCESS S_IRWXU|S_IROTH|S_IWOTH|S_IXOTH
 
 #define BACKLOG 10  // how many pending connections queue will hold
 
+
+void getPortAndRoot(int argc, char* argv[], int* port, char* directory);
+
+
 void* handleConnection(void* clientPtr);
 
-int main(void)
+
+int main(int argc, char* argv[])
 {
-	int sockfd = bindSocketWithLocal(NULL, PORT, BACKLOG);
+	int port;
+	char root_directory[MAXDATASIZE];
+	
+	getPortAndRoot(argc, argv, &port, root_directory);
+	
+	printf("port = %d", port);
+	printf("root_directory = %s", root_directory);
+	
+	int sockfd = bindSocketWithLocal(NULL, port, BACKLOG);
   
     /************************************ Select a proper socket for server to use******************************/
 
@@ -210,6 +231,41 @@ void* handleConnection(void* clientPtr) {
 			}
 			printf("mark1");
 			break;
+		}
+	}
+}
+
+void getPortAndRoot(int argc, char* argv[], int* port, char* directory) {
+	int give_root_flag = 0, give_port_flag = 0;
+	
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(argv[i], PORT) == 0) {
+			if (i + 1 < argc) {
+				int rv = atoi(argv[i + 1]);
+				if (0 < rv && rv < TOTAL_PORT_NUM) {
+					*port = rv;
+					give_port_flag = 1;
+				}
+			}
+		}
+		
+		if (strcmp(argv[i], ROOT) == 0) {
+			if (i + 1 < argc && mkdir(argv[i + 1], FULL_ACCESS) == 0) {
+				printf("Create the root directory %s.\n", argv[i + 1]);
+				strcpy(directory, argv[i + 1]);
+				give_root_flag = 1;
+			}
+		}
+	}
+	
+	if (give_port_flag == 0) {
+		*port = DEFAULT_PORT;
+	}
+	
+	if (give_root_flag == 0) {
+		if (mkdir(DEFAULT_ROOT, FULL_ACCESS) == 0) {
+			printf("Create the root directory %s.\n", DEFAULT_ROOT);
+		    strcpy(directory, DEFAULT_ROOT);
 		}
 	}
 }
