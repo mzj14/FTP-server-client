@@ -33,7 +33,4 @@
 *.su
 
 # File folders
-server/
-client/
 test/
-client_1/
