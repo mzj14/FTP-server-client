@@ -4,7 +4,7 @@
 #include "client_data.h"
 #include "const.h"
 
-client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd) {
+client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd, char* root_directory) {
 	client_data* client =(client_data*)malloc(sizeof(client_data));
 	
     strcpy(client->ip[COMMAND], ip);
@@ -16,6 +16,8 @@ client_data* createClientWithData(client_data* head, char* ip, int port, int soc
 	client->sockfd[DATA] = INVALID_SOCKFD;
     client->status = UN_LOG;
 	client->next = head;
+	strcpy(client->root_directory, root_directory);
+	client->transmode = INVALID_TRANS;
     return client;
 }
 

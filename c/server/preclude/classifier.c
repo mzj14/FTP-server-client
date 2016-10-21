@@ -6,7 +6,7 @@
 #include "const.h"
 #include "classifier.h"
 
-const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB, PORT_VERB, RETR_VERB };
+const char* KEY_VERB[COMMAND_NUM] = { USER_VERB, PASS_VERB, SYST_VERB, TYPE_VERB, QUIT_VERB, ABOR_VERB, PORT_VERB, RETR_VERB, PASV_VERB, STOR_VERB };
 
 int ifAllUpperCase(char* str) {
 	int i = 0;
@@ -51,6 +51,7 @@ int properParam(char* parameter, int type, char* error_msg) {
             stpcpy(error_msg, "500 User name is needed\r\n");
             return 0;
         }
+		/*
         if (checkParamWithRegex(parameter, "^\\w+$") == 0) {
             stpcpy(error_msg, "503 User name should only contains: _ a-z A-Z 0-9\r\n");
             return 0;
@@ -59,6 +60,7 @@ int properParam(char* parameter, int type, char* error_msg) {
             stpcpy(error_msg, "504 FTP does not support users other than anonymous\r\n");
             return 0;
         };
+		*/
     }
     
     // the PASS command
@@ -67,14 +69,16 @@ int properParam(char* parameter, int type, char* error_msg) {
             stpcpy(error_msg, "500 Password is needed\r\n");
             return 0;
         }
+        /*
         if (checkParamWithRegex(parameter, "^\\w+@\\w+(\\.\\w+)+$") == 0) {
             stpcpy(error_msg, "503 Email format is wrong\r\n");
             return 0;
         }
+		*/
     }
     
     // the SYST, QUIT, ABOR command
-    if (type == 3 || type == 5 || type == 6) {
+    if (type == 3 || type == 5 || type == 6 || type == 9) {
         if (checkParamWithRegex(parameter, "^$") == 0) {
             stpcpy(error_msg, "500 The command should not have parameter\r\n");
             return 0;
@@ -106,9 +110,9 @@ int properParam(char* parameter, int type, char* error_msg) {
 	}
 
     // the RETR command.
-	if (type == 8) {
+	if (type == 8 || type == 10) {
 		if (checkParamWithRegex(parameter, "^$") == 1) {
-            stpcpy(error_msg, "500 Retrieve parameter is needed\r\n");
+            stpcpy(error_msg, "500 Command parameter is needed\r\n");
             return 0;
         }
 	}

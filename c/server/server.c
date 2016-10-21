@@ -1,10 +1,9 @@
 /*
-** server.c -- a stream socket server demo
+** server.c -- a stream socket server
 */
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
@@ -36,85 +35,54 @@
 #define DEFAULT_PORT 21
 #define DEFAULT_ROOT "/tmp"
 
-#define FULL_ACCESS S_IRWXU|S_IROTH|S_IWOTH|S_IXOTH
+#define FULL_ACCESS S_IRWXU|S_IROTH|S_IWOTH|S_IXOTH   // full right to the created folder
 
 #define BACKLOG 10  // how many pending connections queue will hold
 
 
+// get the port and root directory from command
 void getPortAndRoot(int argc, char* argv[], int* port, char* directory);
 
 
+// handle every client connection with data pointed by clientPtr
 void* handleConnection(void* clientPtr);
 
 
+void f_write(char* str) {
+	FILE* fp = fopen("test.txt", "a+");
+
+    if (fp == NULL)
+	{
+		printf("Cann't open the file!");
+		exit(1);
+	}
+	
+	fprintf(fp, "%s\n", str);
+	
+	fclose(fp);
+}
+
+char print_str[MAXDATASIZE];
+
+FILE *fp = NULL;
+ 
 int main(int argc, char* argv[])
-{
-	int port;
+{	
+	/************************************ get command port and root directory from command ************************************/
+	int command_port;
 	char root_directory[MAXDATASIZE];
+	getPortAndRoot(argc, argv, &command_port, root_directory);
 	
-	getPortAndRoot(argc, argv, &port, root_directory);
+	printf("port = %d\n", command_port);
+	printf("root_directory = %s\n", root_directory);
 	
-	printf("port = %d", port);
-	printf("root_directory = %s", root_directory);
 	
-	int sockfd = bindSocketWithLocal(NULL, port, BACKLOG);
+	
+
   
     /************************************ Select a proper socket for server to use******************************/
-
-	/*
-	struct addrinfo hints, *servinfo, *p;
-	int rv, yes = 1;
 	
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET; // restrict socket to IPV4 only
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; // use my IP
-
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
-      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-      return 1;
-    }
-
-    // loop through all the results and bind to the first we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
-            p->ai_protocol)) == -1) {
-            perror("server: socket");
-            continue;
-        }
-
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-			sizeof(int)) == -1) {
-		    perror("setsockopt");
-		    exit(1);
-		}
-
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-           close(sockfd);
-           perror("server: bind");
-           continue;
-        }
-        break;
-    }
-
-    if (p == NULL)  {
-        fprintf(stderr, "server: failed to bind\n");
-        exit(1);
-    } else {
-	    printf("The server socket IP is %s\n", inet_ntoa(((struct sockaddr_in*)p->ai_addr)->sin_addr));
-        printf("The server socket port is %d\n", ntohs(((struct sockaddr_in*)p->ai_addr)->sin_port)); 	
-    }
-  
-    freeaddrinfo(servinfo); // all done with this structure
-  
-    if (listen(sockfd, BACKLOG) == -1) {
-        perror("listen");
-        exit(1);
-    }
-
-    printf("server: waiting for connections...\n");
-    */
-	
+    int sockfd = bindSocketWithLocal(NULL, command_port, BACKLOG, NULL, NULL);
 	
 	
     /**************** Loop, accept client connection, assign every incoming connection to a thread ***************************/
@@ -136,12 +104,18 @@ int main(int argc, char* argv[])
 	
 		client_ip = inet_ntoa(((struct sockaddr_in*)&their_addr)->sin_addr);
 		client_port = ntohs(((struct sockaddr_in*)&their_addr)->sin_port);
-	    printf("The incoming client socket IP is %s\n", client_ip);
-        printf("The incoming client socket port is %d\n", client_port);
-		printf("Use socket No.%d to play with it.\n", new_fd);
+		
+	    sprintf(print_str, "The incoming client socket IP is %s\n", client_ip);
+		f_write(print_str);
+		
+        sprintf(print_str, "The incoming client socket port is %d\n", client_port);
+		f_write(print_str);
+		
+		sprintf(print_str, "Use socket No.%d to play with it.\n", new_fd);
+		f_write(print_str);
 		
 		if ((new_client = searchClientWithIP(client_head, client_ip, client_port)) == NULL) {
-			new_client = createClientWithData(client_head, client_ip, client_port, new_fd);
+			new_client = createClientWithData(client_head, client_ip, client_port, new_fd, root_directory);
 		}
 		
 		pthread_t sniffer_thread;
@@ -156,7 +130,7 @@ int main(int argc, char* argv[])
     }
     
 	printf("mark 3");
-	// deleteAllClient(client_head);
+	deleteAllClient(client_head);
     client_head = NULL;
 	
     return 0;
@@ -177,9 +151,12 @@ void* handleConnection(void* clientPtr) {
 		receive_result;           // result of receiving data from stream
 		
 	// send welcome message
-	if (sendAll(client->sockfd[COMMAND], WELCOME_MESSAGE, strlen(WELCOME_MESSAGE)) == -1) {
+	if (send(client->sockfd[COMMAND], WELCOME_MESSAGE, strlen(WELCOME_MESSAGE), 0) == -1) {
 		perror("send");
 	}
+	
+	f_write(WELCOME_MESSAGE);
+	
 	
 	while(1) {
 		// printf("000");
@@ -189,25 +166,32 @@ void* handleConnection(void* clientPtr) {
 		memset(error_msg, 0, sizeof error_msg);
 		memset(send_msg, 0, sizeof send_msg);
   
+        f_write("1111");
+		
 		// if there is no message sent from the client, the process will hang on the recv()
-		receive_result = recvAll(client->sockfd[COMMAND], buf, MAXDATASIZE - 1);
+		receive_result = recv(client->sockfd[COMMAND], buf, MAXDATASIZE - 1, 0);
+		
 		if (receive_result == -1) {
+			f_write("wrong");
 			perror("recv error");
 			exit(1);
 		}
   
 		printf("%s", buf);
   
+		f_write(buf);
+		
 		separateRequest(buf, verb, parameter);
   
 		printf("Verb:%s\n", verb);
 		printf("Parameter:%s\n", parameter);
   
 		cat = getRequestCategory(verb, parameter, error_msg);
-  
+		printf("cat = %d\n", cat);
+		
 		handleRequest(cat, parameter, error_msg, send_msg, client);
   
-		printf("cat = %d\n", cat);
+		
 		printf("send_msg = %s\n", send_msg);
   
 	    printf("client.ip[COMMAND] = %s\n", client->ip[COMMAND]);
@@ -218,11 +202,16 @@ void* handleConnection(void* clientPtr) {
 		printf("client.socket[DATA] = %d\n", client->sockfd[DATA]);
 		printf("client.status = %d\n", client->status);
 		printf("client.password = %s\n", client->password);
+		printf("client.root_directory = %s\n", client->root_directory);
+		printf("client.transmode = %d\n", client->transmode);
   
-		if (sendAll(client->sockfd[COMMAND], send_msg, strlen(send_msg)) == -1) {
+		f_write(send_msg);
+		
+		if (send(client->sockfd[COMMAND], send_msg, strlen(send_msg), 0) == -1) {
 			perror("send");
 		}
-		
+	
+ 
 		if (client->status == OFFLINE) {
 			close(client->sockfd[COMMAND]);
 			printf("Socket No.%d is closed by client at %s:%d\n", client->sockfd[COMMAND], client->ip[COMMAND], client->port[COMMAND]);
@@ -250,10 +239,12 @@ void getPortAndRoot(int argc, char* argv[], int* port, char* directory) {
 		}
 		
 		if (strcmp(argv[i], ROOT) == 0) {
-			if (i + 1 < argc && mkdir(argv[i + 1], FULL_ACCESS) == 0) {
-				printf("Create the root directory %s.\n", argv[i + 1]);
-				strcpy(directory, argv[i + 1]);
-				give_root_flag = 1;
+			if (i + 1 < argc) {
+				if (access(argv[i + 1], 0) == 0 || mkdir(argv[i + 1], FULL_ACCESS) == 0) {
+					printf("Create the root directory %s.\n", argv[i + 1]);
+					strcpy(directory, argv[i + 1]);
+					give_root_flag = 1;
+				}	
 			}
 		}
 	}
@@ -263,9 +254,9 @@ void getPortAndRoot(int argc, char* argv[], int* port, char* directory) {
 	}
 	
 	if (give_root_flag == 0) {
-		if (mkdir(DEFAULT_ROOT, FULL_ACCESS) == 0) {
+		if (access(DEFAULT_ROOT, 0) == 0 || mkdir(DEFAULT_ROOT, FULL_ACCESS) == 0) {
 			printf("Create the root directory %s.\n", DEFAULT_ROOT);
-		    strcpy(directory, DEFAULT_ROOT);
+			strcpy(directory, DEFAULT_ROOT);
 		}
 	}
 }

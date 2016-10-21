@@ -1,9 +1,9 @@
 #ifndef CONST_H
 #define CONST_H
 
-#define MAXDATASIZE 100
+#define MAXDATASIZE 200
 
-#define COMMAND_NUM 8
+#define COMMAND_NUM 10
 #define KEY_WORD_SIZE 4
 
 #define WELCOME_MESSAGE "220 Anonymous FTP server ready.\r\n"
@@ -23,6 +23,8 @@
 #define ABOR_COMMAND 6
 #define PORT_COMMAND 7
 #define RETR_COMMAND 8
+#define PASV_COMMAND 9
+#define STOR_COMMAND 10
 
 #define USER_VERB "USER"
 #define PASS_VERB "PASS"
@@ -32,6 +34,8 @@
 #define ABOR_VERB "ABOR"
 #define PORT_VERB "PORT"
 #define RETR_VERB "RETR"
+#define PASV_VERB "PASV"
+#define STOR_VERB "STOR"
 
 #define UN_LOG_USER_MSG "331 Guest login ok, send your complete e-mail address as a password.\r\n"
 #define UN_LOG_PASS_MSG "530 Please provide a user name before you set a password.\r\n"
@@ -57,4 +61,12 @@ plicit, about the contents of this site.\r\n230-Use at your own risk.\r\n230 Gue
 #define LOG_IN_RETR_MSG_5 "426 The established tcp connection is broken.\r\n"
 #define LOG_IN_RETR_MSG_6 "226 Transfer complete (%ld bytes)."
 
+#define LOG_IN_PASV_MSG "227 =%s"
+
+#define LOG_IN_STOR_MSG_1 LOG_IN_RETR_MSG_1
+#define LOG_IN_STOR_MSG_2 LOG_IN_RETR_MSG_4
+#define LOG_IN_STOR_MSG_3 "550 File already exist.\r\n"
+#define LOG_IN_STOR_MSG_4 "426 The established tcp connection is broken.\r\n"
+#define LOG_IN_STOR_MSG_5 LOG_IN_RETR_MSG_6
+ 
 #endif

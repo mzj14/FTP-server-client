@@ -7,6 +7,6 @@
 */           
 extern int recvAll(int s, char* buf, int size);
 
-extern void recvFile(int sockfd, char* file_name);
+extern long int recvFile(int sockfd, char* root_directory, char* file_name);
 
 #endif

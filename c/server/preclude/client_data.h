@@ -12,16 +12,24 @@
 #define INVALID_PORT -1
 #define INVALID_SOCKFD -1
 
+#define INVALID_TRANS 0
+#define PORT_TRANS 1
+#define PASV_TRANS 2
+
+#define MAX_PATH_LEN 100
+
 typedef struct client_data {
-	char ip[CONNECTION_TYPE_NUM][MEMBER_SIZE];
+	char ip[CONNECTION_TYPE_NUM][MEMBER_SIZE]; // client ip for command connection and data connection
 	int port[CONNECTION_TYPE_NUM]; // client port for command connection and data connection
     char password[MEMBER_SIZE];
 	int sockfd[CONNECTION_TYPE_NUM]; // server socket for two kind connection
 	int status;
 	struct client_data* next;
+	char root_directory[MAX_PATH_LEN];
+	int transmode;
 } client_data;
 
-extern client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd);
+extern client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd, char* root_directory);
 
 extern void setClientPassword(client_data* client, char* password);
 
