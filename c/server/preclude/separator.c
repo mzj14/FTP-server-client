@@ -1,5 +1,6 @@
 #include <string.h>
 #include <ctype.h>
+#include "debug.h"
 
 // left stands for the index of the most left unspace character
 // right stands for the index of the most right unspace character + 1

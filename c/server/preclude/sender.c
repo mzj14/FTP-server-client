@@ -6,21 +6,9 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#include "debug.h"
 #include "sender.h"
 #include "const.h"
-
-void f_write22(char* str) {
-	FILE* fp = fopen("test.txt", "a+");
-
-    if (fp == NULL)
-	{
-		printf("Cann't open the file!");
-	}
-	
-	fprintf(fp, "%s\n", str);
-	
-	fclose(fp);
-}
 
 int sendAll(int s, char* buf, int len) {
 	int total = 0;
@@ -48,7 +36,7 @@ long int sendFile(int sockfd, char* root_directory, char* file_name) {
 
     strcat(file_path, file_name);
 	
-	f_write22(file_path);
+	f_write(file_path);
 	// char file_buffer[MAXDATASIZE * 5];
 	
 	FILE* file = fopen(file_path, "r+b");

@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "debug.h"
 #include "const.h"
 #include "receiver.h"
 

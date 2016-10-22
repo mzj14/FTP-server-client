@@ -59,9 +59,10 @@ plicit, about the contents of this site.\r\n230-Use at your own risk.\r\n230 Gue
 #define LOG_IN_RETR_MSG_3 "550 No right to read the file.\r\n"
 #define LOG_IN_RETR_MSG_4 "425 Can not establish tcp connection.\r\n"
 #define LOG_IN_RETR_MSG_5 "426 The established tcp connection is broken.\r\n"
-#define LOG_IN_RETR_MSG_6 "226 Transfer complete (%ld bytes)."
+#define LOG_IN_RETR_MSG_6 "226 Transfer complete (%ld bytes).\r\n"
+#define LOG_IN_RETR_MSG_7 "226-Transfer complete.\r\n226 Totally 1bytes\r\n"
 
-#define LOG_IN_PASV_MSG "227 =%s"
+#define LOG_IN_PASV_MSG "227 =%s\r\n"
 
 #define LOG_IN_STOR_MSG_1 LOG_IN_RETR_MSG_1
 #define LOG_IN_STOR_MSG_2 LOG_IN_RETR_MSG_4

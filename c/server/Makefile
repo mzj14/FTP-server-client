@@ -1,33 +1,36 @@
-server: server.o separator.o classifier.o handler.o client_data.o sender.o receiver.o connector.o binder.o
-	gcc server.o separator.o classifier.o handler.o client_data.o sender.o receiver.o connector.o binder.o -o server -lpthread
+server: server.o separator.o classifier.o handler.o client_data.o sender.o receiver.o connector.o binder.o debug.o
+	gcc server.o separator.o classifier.o handler.o client_data.o sender.o receiver.o connector.o binder.o debug.o -o server -lpthread
 
-server.o: server.c preclude/const.h preclude/separator.h preclude/classifier.h preclude/handler.h preclude/sender.h preclude/receiver.h  preclude/connector.h
+server.o: server.c preclude/const.h preclude/separator.h preclude/classifier.h preclude/handler.h preclude/sender.h preclude/receiver.h  preclude/connector.h preclude/debug.h
 	gcc -c server.c
 	
-separator.o: preclude/separator.c preclude/separator.h
+separator.o: preclude/separator.c preclude/separator.h preclude/debug.h
 	gcc -c preclude/separator.c
 
-classifier.o: preclude/classifier.c preclude/classifier.h preclude/const.h
+classifier.o: preclude/classifier.c preclude/classifier.h preclude/const.h preclude/debug.h
 	gcc -c preclude/classifier.c
 	
-handler.o: preclude/handler.c preclude/handler.h preclude/const.h
+handler.o: preclude/handler.c preclude/handler.h preclude/const.h preclude/debug.h
 	gcc -c preclude/handler.c
 
-client_data.o: preclude/client_data.c preclude/client_data.h preclude/const.h
+client_data.o: preclude/client_data.c preclude/client_data.h preclude/const.h preclude/debug.h
 	gcc -c preclude/client_data.c
 	
-sender.o: preclude/sender.c preclude/sender.h
+sender.o: preclude/sender.c preclude/sender.h preclude/debug.h
 	gcc -c preclude/sender.c
 	
-receiver.o: preclude/receiver.c preclude/receiver.h
+receiver.o: preclude/receiver.c preclude/receiver.h preclude/debug.h
 	gcc -c preclude/receiver.c
 	
-connector.o: preclude/connector.c preclude/connector.h
+connector.o: preclude/connector.c preclude/connector.h preclude/debug.h
 	gcc -c preclude/connector.c
 	
-binder.o: preclude/binder.c preclude/binder.h
+binder.o: preclude/binder.c preclude/binder.h preclude/debug.h
 	gcc -c preclude/binder.c
 
+debug.o: preclude/debug.c preclude/debug.h
+	gcc -c preclude/debug.c
+	
 clean:
 	@echo "cleanning project"
 	-rm -f *.o

@@ -11,20 +11,7 @@
 #include "sender.h"
 #include "binder.h"
 #include "receiver.h"
-
-void f_write11(char* str) {
-	FILE* fp = fopen("test.txt", "a+");
-
-    if (fp == NULL)
-	{
-		printf("Cann't open the file!");
-		exit(1);
-	}
-	
-	fprintf(fp, "%s\n", str);
-	
-	fclose(fp);
-}
+#include "debug.h"
 
 void combinePortParam(char* portParam, char* ip, int port) {
 	strcpy(portParam, ip);
@@ -161,6 +148,7 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 	
 	// PORT command
 	if (type == PORT_COMMAND) {
+		f_write("I am in the port command.\n");
 		if (client->status == UN_LOG) {
             strcpy(send_msg, UN_LOG_COMMON_MSG);
         } else if (client->status == USER_STATUS) {
@@ -207,11 +195,15 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 	
 	// RETR command
 	if (type == RETR_COMMAND) {
+		f_write("I am in the port command.\n");
 		if (client->status == UN_LOG) {
             strcpy(send_msg, UN_LOG_COMMON_MSG);
         } else if (client->status == USER_STATUS) {
             strcpy(send_msg, USER_COMMON_MSG);
         } else {
+			char sss[100];
+			sprintf(sss, "client.transmode = %d\n", client->transmode);
+		    f_write(sss);
 			if (client->transmode == INVALID_TRANS) {
 				// server does not receive data port from client
 				strcpy(send_msg, LOG_IN_RETR_MSG_1);
@@ -259,13 +251,15 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 						} else {		
 							// send file
 							long int file_len = sendFile(data_sockfd, client->root_directory, parameter);
+							f_write("Begin to send file.\n");
 							if (file_len == -1) {
 								// send file failed
 								strcpy(send_msg, LOG_IN_RETR_MSG_5);
 							} else {
 								// send file succeed
-								f_write11("I am here1111!");
-								sprintf(send_msg, LOG_IN_RETR_MSG_6, file_len); 
+								f_write("I am here1111!");
+								// sprintf(send_msg, LOG_IN_RETR_MSG_6, file_len);
+								strcpy(send_msg, LOG_IN_RETR_MSG_7);
 							}
 						}
 					}
@@ -282,7 +276,7 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 	}
 	
 	// STOR command
-	if (type == RETR_COMMAND) {
+	if (type == STOR_COMMAND) {
 		if (client->status == UN_LOG) {
             strcpy(send_msg, UN_LOG_COMMON_MSG);
         } else if (client->status == USER_STATUS) {
@@ -323,7 +317,7 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 							strcpy(send_msg, LOG_IN_STOR_MSG_4);
 						} else {
 							// send file succeed
-							f_write11("I am here1111!");
+							f_write("I am here1111!");
 							sprintf(send_msg, LOG_IN_STOR_MSG_5, file_len); 
 						}
 					}	

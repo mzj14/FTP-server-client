@@ -27,6 +27,7 @@
 #include "preclude/receiver.h"
 #include "preclude/client_data.h"
 #include "preclude/binder.h"
+#include "preclude/debug.h"
 
 #define PORT "-port"  // the port argument in command
 #define ROOT "-root"  // the root argument in command
@@ -46,21 +47,6 @@ void getPortAndRoot(int argc, char* argv[], int* port, char* directory);
 
 // handle every client connection with data pointed by clientPtr
 void* handleConnection(void* clientPtr);
-
-
-void f_write(char* str) {
-	FILE* fp = fopen("test.txt", "a+");
-
-    if (fp == NULL)
-	{
-		printf("Cann't open the file!");
-		exit(1);
-	}
-	
-	fprintf(fp, "%s\n", str);
-	
-	fclose(fp);
-}
 
 char print_str[MAXDATASIZE];
 
@@ -192,21 +178,30 @@ void* handleConnection(void* clientPtr) {
 		handleRequest(cat, parameter, error_msg, send_msg, client);
   
 		
-		printf("send_msg = %s\n", send_msg);
-  
-	    printf("client.ip[COMMAND] = %s\n", client->ip[COMMAND]);
-		printf("client.ip[DATA] = %s\n", client->ip[DATA]);
-		printf("client.port[COMMAND] = %d\n", client->port[COMMAND]);
-		printf("client.port[DATA] = %d\n", client->port[DATA]);
-		printf("client.socket[COMMAND] = %d\n", client->sockfd[COMMAND]);
-		printf("client.socket[DATA] = %d\n", client->sockfd[DATA]);
+		sprintf(print_str, "send_msg = %s\n", send_msg);
+		f_write(print_str);
+		
+	    sprintf(print_str, "client.ip[COMMAND] = %s\n", client->ip[COMMAND]);
+		f_write(print_str);
+		sprintf(print_str, "client.ip[DATA] = %s\n", client->ip[DATA]);
+		f_write(print_str);
+		sprintf(print_str, "client.port[COMMAND] = %d\n", client->port[COMMAND]);
+		f_write(print_str);
+		sprintf(print_str, "client.port[DATA] = %d\n", client->port[DATA]);
+		f_write(print_str);
+		sprintf(print_str, "client.socket[COMMAND] = %d\n", client->sockfd[COMMAND]);
+		f_write(print_str);
+		
+		sprintf(print_str, "client.socket[DATA] = %d\n", client->sockfd[DATA]);
+		f_write(print_str);
 		printf("client.status = %d\n", client->status);
 		printf("client.password = %s\n", client->password);
 		printf("client.root_directory = %s\n", client->root_directory);
-		printf("client.transmode = %d\n", client->transmode);
-  
-		f_write(send_msg);
 		
+		
+		sprintf(print_str, "client.transmode = %d\n", client->transmode);
+		f_write(print_str);
+
 		if (send(client->sockfd[COMMAND], send_msg, strlen(send_msg), 0) == -1) {
 			perror("send");
 		}

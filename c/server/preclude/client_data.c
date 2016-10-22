@@ -3,6 +3,7 @@
 
 #include "client_data.h"
 #include "const.h"
+#include "debug.h"
 
 client_data* createClientWithData(client_data* head, char* ip, int port, int sockfd, char* root_directory) {
 	client_data* client =(client_data*)malloc(sizeof(client_data));

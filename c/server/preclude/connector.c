@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "debug.h"
 #include "connector.h"
 #include "const.h"
 
