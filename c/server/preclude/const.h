@@ -3,16 +3,31 @@
 
 #define MAXDATASIZE 200
 
-#define COMMAND_NUM 10
 #define KEY_WORD_SIZE 4
 
 #define WELCOME_MESSAGE "220 Anonymous FTP server ready.\r\n"
-#define WELCOME_MESSAGE_SIZE 33
 
 #define OFFLINE -1
 #define UN_LOG 0
 #define USER_STATUS 1
 #define LOG_IN 2
+
+#define TOTAL_PORT_NUM 65536
+#define BACKLOG 20
+#define INVALID_PORT -1
+
+#define BLANK_PASSWORD "$"
+
+#define COMMAND 0
+#define DATA 1
+
+#define INVALID_IP "$"
+#define INVALID_PORT -1
+#define INVALID_SOCKFD -1
+
+#define INVALID_TRANS 0
+#define PORT_TRANS 1
+#define PASV_TRANS 2
 
 #define INVALID_COMMAND 0
 #define USER_COMMAND 1
@@ -25,17 +40,6 @@
 #define RETR_COMMAND 8
 #define PASV_COMMAND 9
 #define STOR_COMMAND 10
-
-#define USER_VERB "USER"
-#define PASS_VERB "PASS"
-#define SYST_VERB "SYST"
-#define TYPE_VERB "TYPE"
-#define QUIT_VERB "QUIT"
-#define ABOR_VERB "ABOR"
-#define PORT_VERB "PORT"
-#define RETR_VERB "RETR"
-#define PASV_VERB "PASV"
-#define STOR_VERB "STOR"
 
 #define UN_LOG_USER_MSG "331 Guest login ok, send your complete e-mail address as a password.\r\n"
 #define UN_LOG_PASS_MSG "530 Please provide a user name before you set a password.\r\n"
@@ -54,13 +58,14 @@ plicit, about the contents of this site.\r\n230-Use at your own risk.\r\n230 Gue
 #define LOG_IN_QUIT_MSG "221-Thank you for using the FTP service.\r\n221 Goodbye.\r\n"
 #define LOG_IN_PORT_MSG "200 PORT command successful.\r\n"
 
+#define LOG_IN_MARK_MSG "150 Opening BINARY mode data connection for %s\r\n"
+ 
 #define LOG_IN_RETR_MSG_1 "425 No TCP connection shown by PORT or PASV.\r\n"
 #define LOG_IN_RETR_MSG_2 "550 File not exist.\r\n"
 #define LOG_IN_RETR_MSG_3 "550 No right to read the file.\r\n"
 #define LOG_IN_RETR_MSG_4 "425 Can not establish tcp connection.\r\n"
 #define LOG_IN_RETR_MSG_5 "426 The established tcp connection is broken.\r\n"
 #define LOG_IN_RETR_MSG_6 "226 Transfer complete (%ld bytes).\r\n"
-#define LOG_IN_RETR_MSG_7 "226-Transfer complete.\r\n226 Totally 1bytes\r\n"
 
 #define LOG_IN_PASV_MSG "227 =%s\r\n"
 

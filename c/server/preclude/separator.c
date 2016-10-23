@@ -1,10 +1,11 @@
 #include <string.h>
 #include <ctype.h>
-#include "debug.h"
 
 // left stands for the index of the most left unspace character
 // right stands for the index of the most right unspace character + 1
+// remove space character in request
 void trimRequest(char* req, int* left, int* right) {
+	
     *right = strlen(req) - 1;
 	*left = 0;
     
@@ -23,9 +24,12 @@ void trimRequest(char* req, int* left, int* right) {
     }
     
     return;
+	
 }
 
+// find first j that meets req[j] == ch in [left, right - 1]
 int findFirstChar(char* req, int left, int right, char ch) {
+	
 	int i;
 	for (i = left; i < right; i++) {
 		if (req[i] == ch) {
@@ -33,18 +37,24 @@ int findFirstChar(char* req, int left, int right, char ch) {
 		}
 	}
 	return i;
+	
 }
 
+// copy req[left, right -1] to dest
 void copyString(char* req, int left, int right, char* dest) {
+	
     int i, j = 0;
     for (i = left; i < right; i++) {
 		dest[j] = req[i];
 		j++;
 	}
     return;	
+	
 }
 
+// separate request to verb and parameter
 void separateRequest(char* req, char* verb, char* parameter) {
+	
     int left, right, middle;
     trimRequest(req, &left, &right);
     
@@ -57,5 +67,6 @@ void separateRequest(char* req, char* verb, char* parameter) {
 	copyString(req, left, middle, verb);
 	copyString(req, middle + 1, right, parameter);
     
-    return;	
+    return;
+	
 }

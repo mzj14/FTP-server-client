@@ -1,11 +1,10 @@
 #ifndef RECEIVER_H
 #define RECEIVER_H
 
-#define END_CHAR '$'
 /* 
-   receive all the character to buf
-*/           
-extern int recvAll(int s, char* buf, int size);
+	sockfd: the socket which we will recv file data from
+	root_directory: the directory where file located
+*/
 
 extern long int recvFile(int sockfd, char* root_directory, char* file_name);
 

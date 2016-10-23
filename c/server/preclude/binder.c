@@ -1,34 +1,55 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 #include <sys/wait.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <ifaddrs.h>
 #include <signal.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "const.h"
 #include "binder.h"
-#include "client_data.h"
 
+// get local machine's ip and store it in result_ip
 void getLocalIp(char* result_ip) {
-	char hname[128];
-	struct hostent *hent;
-	gethostname(hname, sizeof(hname));
-	hent = gethostbyname(hname);
-	strcpy(result_ip, inet_ntoa(*(struct in_addr*)(hent->h_addr_list[0])));
+	
+	struct ifaddrs * ifAddrStruct=NULL;
+    void * tmpAddrPtr=NULL;
+
+    getifaddrs(&ifAddrStruct);
+
+	// choose the second one as the result_ip
+	int second = 0;
+	
+    while (ifAddrStruct!=NULL) {
+        if (ifAddrStruct->ifa_addr->sa_family==AF_INET) { // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifAddrStruct->ifa_addr)->sin_addr;
+            inet_ntop(AF_INET, tmpAddrPtr, result_ip, INET_ADDRSTRLEN);
+			second++;
+			if (second == 2) {
+				break;
+			}	
+        }
+        ifAddrStruct=ifAddrStruct->ifa_next;
+    }
+    return;
+	
 }
 
 int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* result_ip, int* result_port) {
+	
     int sockfd;
 	struct addrinfo hints, *servinfo, *p;
 	int rv, yes = 1;
-	static int random_num = 10000;
+	static int random_num = BEGIN_PORT;  // random_port will loop between BEGIN_PORT and TOTAL_PORT_NUM - 1
 	
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_INET; // restrict socket to IPV4 only
@@ -37,15 +58,15 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
 
 	char dest_port_str[10];
 	
-	// bind to specific port
 	if (dest_port != INVALID_PORT) {
+		// bind to specific port
 		sprintf(dest_port_str, "%d", dest_port);
 	} else {
-		// printf("r = %d", random_num);
-		// sprintf(dest_port_str, "%d", random_num);
-		// random_num++;
+		// bind to random_port
 		sprintf(dest_port_str, "%d", random_num);
-		random_num = random_num % 65536 + 1;
+		if (random_num == TOTAL_PORT_NUM - 1) {
+			random_num == BEGIN_PORT;
+		}
 	}
 	
     if ((rv = getaddrinfo(dest_ip, dest_port_str, &hints, &servinfo)) != 0) {
@@ -81,7 +102,7 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
         return -1;
     }
 	
-	// we need to know which ip and port did the socket bind
+	// we need to know which ip and port the socket binded
 	if (dest_port == INVALID_PORT) {
 		getLocalIp(result_ip);
 		*result_port = ntohs(((struct sockaddr_in*)p->ai_addr)->sin_port);
@@ -96,4 +117,5 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
 
     printf("local: waiting for connections...\n");
 	return sockfd;
+	
 }

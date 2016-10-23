@@ -39,9 +39,9 @@ def create_test_file(filename):
 def test(port=21, directory='/tmp'):
   global credit
   if port == 21 and directory == '/tmp':
-    server = subprocess.Popen(['sudo', './server'], stdout=subprocess.PIPE)
+    server = subprocess.Popen(['./server'], stdout=subprocess.PIPE)
   else:
-    server = subprocess.Popen(['sudo', './server', '-port', '%d' % port, '-root', directory], stdout=subprocess.PIPE)
+    server = subprocess.Popen(['./server', '-port', '%d' % port, '-root', directory], stdout=subprocess.PIPE)
   time.sleep(0.1)
   print 'The tester is going to connect.'
   try:
@@ -119,6 +119,8 @@ directory = ''.join(random.choice(string.ascii_letters) for x in xrange(10))
 if os.path.isdir(directory):
   shutil.rmtree(directory)
 os.mkdir(directory)
+print 'directory = ', directory
+
 test(port, directory)
 shutil.rmtree(directory)
 # Clean
