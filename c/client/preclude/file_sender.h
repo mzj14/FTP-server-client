@@ -1,11 +1,10 @@
 #ifndef SENDER_H
 #define SENDER_H
 
-#define END_STRING "$"
 /* 
-   send all the character in buf
-*/           
-extern int sendAll(int s, char* buf, int len);
+	sockfd: the socket which we will put file data into
+	root_directory: the directory where file located
+*/
 
 extern long int sendFile(int sockfd, char* root_directory, char* file_name);
 

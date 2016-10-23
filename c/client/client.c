@@ -16,28 +16,22 @@
 
 #include "preclude/connector.h"
 #include "preclude/modify.h"
-#include "preclude/sender.h"
-#include "preclude/receiver.h"
+#include "preclude/file_sender.h"
+#include "preclude/file_receiver.h"
 #include "preclude/const.h"
-#include "preclude/handler.h"
-#include "preclude/separator.h"
-#include "preclude/client_data.h"
 #include "preclude/binder.h"
-#include "preclude/classifier.h"
+#include "preclude/reply_classifier.h"
 
 #define IP "-ip" // ip argument in command
 #define PORT "-port"  // the port argument in command
 #define ROOT "-root"  // the root argument in command
 
-#define TOTAL_PORT_NUM 65536
 #define DEFAULT_IP "127.0.0.1" 
 #define IP_REGEX "^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]{1}[0-9]{1}|[0-9])$"
 #define DEFAULT_PORT 21  
 #define DEFAULT_ROOT "local"
 
 #define FULL_ACCESS S_IRWXU|S_IROTH|S_IWOTH|S_IXOTH
-
-#define BACKLOG 10 // how many pending connections queue will hold
 
 // get the port and root directory from command
 
@@ -52,6 +46,8 @@ int main(int argc, char *argv[])
     int data_connect_port = INVALID_PORT;
     int data_sockfd = INVALID_SOCKFD;
     int new_data_sockfd = INVALID_SOCKFD;
+	char file_name[MAXDATASIZE]; 
+	int data_transmode = INVALID_TRANS;
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size = sizeof(struct sockaddr_in);
     
@@ -71,69 +67,114 @@ int main(int argc, char *argv[])
   
 	while (1) {
 		memset(buf, 0, sizeof buf);
+		
 		if (recv(sockfd, buf, MAXDATASIZE - 1, 0) == -1) {
 			perror("recv error");
 			exit(1);
 		}
-	
+		
 		printf("%s", buf);
-	
-	
-		if (strcmp(buf, LOG_IN_PORT_MSG) == 0) {
-			// bind a socket to local address and port
-			printf("Begin to bind socket.");
-			memset(verb, 0, sizeof verb);
-			memset(parameter, 0, sizeof parameter);
-			
-			separateRequest(send_msg, verb, parameter);
-			splitPortParam(parameter, data_connect_ip, &data_connect_port);
+		
+		int cat = classifyReply(buf, send_msg);
+		
+		printf("cat = %d\n", cat);
+		
+		if (cat == TO_QUIT) {
+			break;
+		}
+		
+		if (cat == SET_PORT) {
+			getPortParamFrom(send_msg, data_connect_ip, &data_connect_port);
 			
 			// remove the previous data socket
 			if (data_sockfd != INVALID_SOCKFD) {
 				close(data_sockfd);
-			}	
+				data_sockfd = INVALID_SOCKFD;
+			}
+			
+			// bind a socket to local address and port
+			data_transmode = PORT_TRANS;
 			data_sockfd = bindSocketWithLocal(data_connect_ip, data_connect_port, BACKLOG, NULL, NULL);
 		}
 		
-		if (startsWith(buf, "227")) {
-			// store the server data and ip address to connect.
-			// need to add transmode to client
+		if (cat == SET_PASV) {
+			getPortParamFrom(buf, data_connect_ip, &data_connect_port);
+			
+			// remove the previous data socket
+			if (data_sockfd != INVALID_SOCKFD) {
+				close(data_sockfd);
+				data_sockfd = INVALID_SOCKFD;
+			}
+
+			data_transmode = PASV_TRANS;
 		}
-    
+		
+		// server could not send the file
+		// client could not stor the file
+		if (cat == FILE_FAIL) {
+			if (data_sockfd != INVALID_SOCKFD) {
+				close(data_sockfd);
+				data_sockfd = INVALID_SOCKFD;
+			}
+		}
+		
+		if (cat == BEGIN_RETR) {
+			if (data_transmode == PORT_TRANS && data_sockfd != INVALID_SOCKFD) {
+				accept(data_sockfd, NULL, NULL);
+			}
+			
+			if (data_transmode == PASV_TRANS && data_sockfd != INVALID_SOCKFD) {
+				data_sockfd = connectSocketToDest(data_connect_ip, data_connect_port);
+			}
+			
+			if (recv(sockfd, buf, MAXDATASIZE - 1, 0) == -1) {
+				perror("recv error");
+				exit(1);
+			}
+			
+			if (classifyReply(buf, send_msg) == FILE_SUCC) {
+				recvFile(data_sockfd, root_directory, file_name);
+			}
+				
+			if (data_sockfd != INVALID_SOCKFD) {
+				close(data_sockfd);
+				data_sockfd = INVALID_SOCKFD;
+			}
+		}
+		
+		if (cat == BEGIN_STOR) {
+			if (data_transmode == PORT_TRANS && data_sockfd != INVALID_SOCKFD) {
+				new_data_sockfd = accept(data_sockfd, NULL, NULL);
+			}
+			if (data_transmode == PASV_TRANS && data_sockfd != INVALID_SOCKFD) {
+				data_sockfd = connectSocketToDest(data_connect_ip, data_connect_port);
+			}
+			
+			getFileParam(send_msg, file_name);
+			
+			sendFile(data_sockfd, root_directory, file_name);
+			
+			if (recv(sockfd, buf, MAXDATASIZE - 1, 0) == -1) {
+				perror("recv error");
+				exit(1);
+			}
+			
+			if (data_sockfd != INVALID_SOCKFD) {
+				close(data_sockfd);
+				data_sockfd = INVALID_SOCKFD;
+			}
+			
+		}
+		
 	    memset(send_msg, 0, sizeof send_msg);
-		memset(copy_msg, 0, sizeof copy_msg);
-		memset(verb, 0, sizeof verb);
-		memset(parameter, 0, sizeof parameter);
 		
 		// client now get msg from command line
 		fgets(send_msg, MAXDATASIZE - 2, stdin);
 		modifyTail(send_msg);
 		
-		printf("send_msg = %s\n", send_msg);
-		strcpy(copy_msg, send_msg);
-		printf("copy_msg = %s\n", copy_msg);
-		
-		separateRequest(copy_msg, verb, parameter);
-		int cat = getRequestCategory(verb, parameter, error_msg);
-		printf("parameter = %s\n", parameter);
-		
-		if (sendAll(sockfd, send_msg, strlen(send_msg)) == -1) {
-			perror("send");
-		} else {
-			printf("cat = %d\n", cat);
-			printf("data_sockfd = %d\n", data_sockfd);
-			
-			if (cat == RETR_COMMAND && data_sockfd != INVALID_SOCKFD) {
-				printf("I am going to accept.\n");
-				new_data_sockfd = accept(data_sockfd, (struct sockaddr *)&their_addr, &sin_size);
-				if (new_data_sockfd == -1) {
-					perror("accept data connection error");
-				} else {			
-					recvFile(new_data_sockfd, root_directory, parameter);
-					close(data_sockfd);
-					data_sockfd = INVALID_SOCKFD;
-				}
-			}
+		if (send(sockfd, send_msg, strlen(send_msg), 0) == -1) {
+			perror("send error");
+			exit(1);
 		}
 	}
   
