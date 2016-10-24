@@ -12,7 +12,6 @@
 #include "binder.h"
 #include "file_receiver.h"
 #include "file_accessor.h"
-#include "debug.h"
 
 // combine ip and port to command format string to portParam
 void combinePortParam(char* portParam, char* ip, int port) {
@@ -213,14 +212,28 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
         } else {
 			// can not find the file
 			if ((accessFile(client->root_directory, parameter, 0)) == -1) {
-				printf("cant find the file");
 				strcpy(send_msg, LOG_IN_RETR_MSG_2);
+				client->transmode = INVALID_TRANS;
+				if (client->sockfd[DATA] != INVALID_SOCKFD) {
+					close(client->sockfd[DATA]);
+					client->sockfd[DATA] = INVALID_SOCKFD;	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
 				return;
 			}
+			
 			// can not read the file
 			if ((accessFile(client->root_directory, parameter, 4)) == -1) {
-				printf("cant read the file");
 				strcpy(send_msg, LOG_IN_RETR_MSG_3);
+				if (client->sockfd[DATA] != INVALID_SOCKFD) {
+					close(client->sockfd[DATA]);
+					client->sockfd[DATA] = INVALID_SOCKFD;	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
 				return;
 			} 
 			
@@ -233,6 +246,13 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 			// server does not receive data port from client 
 			if (client->transmode == INVALID_TRANS) {
 				strcpy(send_msg, LOG_IN_RETR_MSG_1);
+				if (client->sockfd[DATA] != INVALID_SOCKFD) {
+					close(client->sockfd[DATA]);
+					client->sockfd[DATA] = INVALID_SOCKFD;	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
 				return;
 			}
 			
@@ -245,23 +265,23 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 					
 			if (data_sockfd == INVALID_SOCKFD) {
 				strcpy(send_msg, LOG_IN_RETR_MSG_4);
-				return;
-			}
-			
-			// send file
-			long int file_len = sendFile(data_sockfd, client->root_directory, parameter);
-			
-			if (file_len == -1) {
-				// send file failed
-				strcpy(send_msg, LOG_IN_RETR_MSG_5);
 			} else {
-				// send file succeed
-				sprintf(send_msg, LOG_IN_RETR_MSG_6, file_len);
-			}
+				// send file
+				long int file_len = sendFile(data_sockfd, client->root_directory, parameter);
 			
-			// close data socket
-			close(data_sockfd);
-			client->sockfd[DATA] = INVALID_SOCKFD;				
+				if (file_len == -1) {
+					// send file failed
+					strcpy(send_msg, LOG_IN_RETR_MSG_5);
+				} else {
+					// send file succeed
+					sprintf(send_msg, LOG_IN_RETR_MSG_6, file_len);
+				}
+			
+				// close data socket
+				close(data_sockfd);
+				client->sockfd[DATA] = INVALID_SOCKFD;		
+			}
+				
 			client->transmode = INVALID_TRANS;
 			
 			// abandon the client data ip and port
@@ -280,6 +300,13 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 			// has got a a file with the same name
 			if ((accessFile(client->root_directory, parameter, 0)) != -1) {
 				strcpy(send_msg, LOG_IN_STOR_MSG_3);
+				if (client->sockfd[DATA] != INVALID_SOCKFD) {
+					close(client->sockfd[DATA]);
+					client->sockfd[DATA] = INVALID_SOCKFD;	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
 				return;
 			}
 			
@@ -292,6 +319,13 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 			if (client->transmode == INVALID_TRANS) {
 				// server does not receive data port from client
 				strcpy(send_msg, LOG_IN_STOR_MSG_1);
+				if (client->sockfd[DATA] != INVALID_SOCKFD) {
+					close(client->sockfd[DATA]);
+					client->sockfd[DATA] = INVALID_SOCKFD;	
+				}
+				// abandon the client data ip and port
+				strcpy(client->ip[DATA], INVALID_IP);
+				client->port[DATA] = INVALID_PORT;
 				return;
 			}
 			
@@ -304,21 +338,21 @@ void handleRequest(int type, char* parameter, char* error_msg, char* send_msg, c
 			
 			if (data_sockfd == INVALID_SOCKFD) {
 				strcpy(send_msg, LOG_IN_STOR_MSG_2);
-				return;
+			} else {
+				// recv file
+				long int file_len = recvFile(data_sockfd, client->root_directory, parameter);
+				if (file_len == -1) {
+					// send file failed
+					strcpy(send_msg, LOG_IN_STOR_MSG_4);
+				} else {
+					// send file succeed
+					sprintf(send_msg, LOG_IN_STOR_MSG_5, file_len); 
+				}
+
+				close(data_sockfd);
+				client->sockfd[DATA] = INVALID_SOCKFD;
 			}
 			
-			// recv file
-			long int file_len = recvFile(data_sockfd, client->root_directory, parameter);
-			if (file_len == -1) {
-				// send file failed
-				strcpy(send_msg, LOG_IN_STOR_MSG_4);
-			} else {
-				// send file succeed
-				sprintf(send_msg, LOG_IN_STOR_MSG_5, file_len); 
-			}
-
-			close(data_sockfd);
-			client->sockfd[DATA] = INVALID_SOCKFD;
 			client->transmode = INVALID_TRANS;
 			
 			// abandon the client data ip and port

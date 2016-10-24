@@ -19,7 +19,7 @@ long int recvFile(int sockfd, char* root_directory, char* file_name) {
 	file_path[root_len + 1] = '\0';
 	
     strcat(file_path, file_name);
-	
+		
 	FILE* fp = fopen(file_path, "wb+");
 	
 	if (fp == NULL) {
@@ -29,14 +29,14 @@ long int recvFile(int sockfd, char* root_directory, char* file_name) {
 	char buff[MAXDATASIZE];
     ssize_t length;
 	long int file_size = 0;
-	
+		
     while((length = recv(sockfd, buff, sizeof(buff), 0)) > 0) {
         fwrite(buff, 1, length, fp);
 		file_size += length;
     }
 	
 	fclose(fp);
-   
+   		
 	return file_size;
 	
 }

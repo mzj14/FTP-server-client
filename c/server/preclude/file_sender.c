@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-#include "debug.h"
 #include "file_sender.h"
 #include "const.h"
 

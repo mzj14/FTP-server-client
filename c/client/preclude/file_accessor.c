@@ -1,5 +1,6 @@
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "const.h"
 #include "file_accessor.h"

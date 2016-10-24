@@ -67,10 +67,11 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
 		if (random_num == TOTAL_PORT_NUM - 1) {
 			random_num == BEGIN_PORT;
 		}
+		random_num++;
 	}
 	
     if ((rv = getaddrinfo(dest_ip, dest_port_str, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		// fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return -1;
 	}
 
@@ -78,19 +79,19 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
             p->ai_protocol)) == -1) {
-            perror("local: socket");
+            // perror("local: socket");
             continue;
         }
 
 		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
 			sizeof(int)) == -1) {
-		    perror("setsockopt");
+		    // perror("setsockopt");
 		    return -1;
 		}
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
            close(sockfd);
-           perror("local: bind");
+           // perror("local: bind");
            continue;
         }
         break;
@@ -98,7 +99,7 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
 
 	
     if (p == NULL)  {
-        fprintf(stderr, "local: failed to bind\n");
+        // fprintf(stderr, "local: failed to bind\n");
         return -1;
     }
 	
@@ -111,11 +112,11 @@ int bindSocketWithLocal(char* dest_ip, int dest_port, int connection_num, char* 
 	freeaddrinfo(servinfo); // all done with this structure
   
     if (listen(sockfd, connection_num) == -1) {
-        perror("listen");
+        // perror("listen");
         return -1;
     }
 
-    printf("local: waiting for connections...\n");
+    // printf("local: waiting for connections...\n");
 	return sockfd;
 	
 }
